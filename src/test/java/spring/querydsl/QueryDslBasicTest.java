@@ -13,6 +13,8 @@ import spring.querydsl.entity.Team;
 
 import javax.persistence.EntityManager;
 
+import static spring.querydsl.entity.QMember.*;
+
 @SpringBootTest
 @Transactional
 public class QueryDslBasicTest {
@@ -63,6 +65,18 @@ public class QueryDslBasicTest {
                 .select(m)
                 .from(m)
                 .where(m.username.eq("member1"))
+                .fetchOne();
+
+        Assertions.assertThat(findByQueryDsl.getUsername()).isEqualTo("member1");
+    }
+
+    @Test
+    void startQueryDslQType() {
+
+        Member findByQueryDsl = queryFactory
+                .select(member)
+                .from(member)
+                .where(member.username.eq("member1"))
                 .fetchOne();
 
         Assertions.assertThat(findByQueryDsl.getUsername()).isEqualTo("member1");
