@@ -1,7 +1,6 @@
 package spring.querydsl;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +12,8 @@ import spring.querydsl.entity.Team;
 
 import javax.persistence.EntityManager;
 
-import static spring.querydsl.entity.QMember.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static spring.querydsl.entity.QMember.member;
 
 @SpringBootTest
 @Transactional
@@ -53,7 +53,7 @@ public class QueryDslBasicTest {
                 .setParameter("username", "member1")
                 .getSingleResult();
 
-        Assertions.assertThat(findByJPQL.getUsername()).isEqualTo("member1");
+        assertThat(findByJPQL.getUsername()).isEqualTo("member1");
     }
 
     @Test
@@ -67,7 +67,7 @@ public class QueryDslBasicTest {
                 .where(m.username.eq("member1"))
                 .fetchOne();
 
-        Assertions.assertThat(findByQueryDsl.getUsername()).isEqualTo("member1");
+        assertThat(findByQueryDsl.getUsername()).isEqualTo("member1");
     }
 
     @Test
@@ -79,7 +79,49 @@ public class QueryDslBasicTest {
                 .where(member.username.eq("member1"))
                 .fetchOne();
 
-        Assertions.assertThat(findByQueryDsl.getUsername()).isEqualTo("member1");
+        assertThat(findByQueryDsl.getUsername()).isEqualTo("member1");
     }
 
+    @Test
+    void search() {
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1").and(member.age.eq(10)))
+                .fetchOne();
+
+        assertThat(findMember.getUsername()).isEqualTo("member1");
+
+        // 검색 조건
+        member.username.eq("member1"); // username = 'member1'
+        member.username.ne("member1"); //username != 'member1'
+        member.username.eq("member1").not(); // username != 'member1'
+
+        member.username.isNotNull(); //이름이 is not null
+
+        member.age.in(10, 20); // age in (10,20)
+        member.age.notIn(10, 20); // age not in (10, 20)
+        member.age.between(10, 30); //between 10, 30
+
+        member.age.goe(30); // age >= 30
+        member.age.gt(30); // age > 30
+        member.age.loe(30); // age <= 30
+        member.age.lt(30); // age < 30
+
+        member.username.like("member%"); //like 검색
+        member.username.contains("member"); // like ‘%member%’ 검색
+        member.username.startsWith("member"); //like ‘member%’ 검색
+    }
+
+    @Test
+    void searchAndParam() {
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(
+                        member.username.eq("member1"),
+                        member.age.eq(10)
+                )
+                .fetchOne();
+
+        assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
 }
